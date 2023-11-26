@@ -55,7 +55,36 @@ def figure_1(df):
     plt.title('Number of children named the top 5 most \npopular names in 1960 & 2022', fontsize = 18.0)
     return None
 
-    
+def make_births_sr():
+    pdf_r = requests.get('https://pub.azdhs.gov/health-stats/report/ahs/ahs2020/pdf/8a1.pdf')
+    pdf_file = PyPDF2.PdfFileReader(BytesIO(pdf_r.content))
+    text = pdf_file.getPage(0).extractText()
+    text = text.split('\n')[1:39]
+    year = []
+    births = []
+    for el in text:
+        if len(el.split()) < 2:
+            year.append(int(el[0:4]))
+            births.append(float(el[4:10].replace(',', '')))
+        elif len(el.split()) == 2:
+            year.append(int(el.split()[0][0:4]))
+            year.append(int(el.split()[1][0:4]))
+            births.append(float(el.split()[0][4:10].replace(',', '')))
+            births.append(float(el.split()[1][4:10].replace(',', '')))
+        else:
+            year.append(int(el.split()[0]))
+            births.append(float(el.split()[1].replace(',', '')))
+    seventies_sr = pd.Series(births, index = year)
+    #I realized the site I was getting the info from also had posted excel files of their data
+    #but I had already made the earlier series so I wanted to use it.
+    tens_df = pd.read_excel('https://pub.azdhs.gov/health-stats/report/ahs/ahs2020/excel/t5b3.xlsx', header=3)
+    tens_sr = tens_df.loc[0, 2010:2020]
+    total_sr = pd.concat([seventies_sr, tens_sr])
+    return total_sr
+
+
+def figure_2(df):
+    birts_data = make_births_sr()
     
 
 
